@@ -3,7 +3,7 @@ package dto
 import "github.com/GophKeeper/internal/repository"
 
 type SavePrivateDataRequest struct {
-	Data   []byte
+	Data   string
 	Type   repository.PrivateDataType
 	UserID string
 }

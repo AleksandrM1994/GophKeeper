@@ -15,7 +15,7 @@ func (User) TableName() string {
 
 type PrivateData struct {
 	ID        string          `db:"id;primary_key"`
-	Data      []byte          `db:"data;not null"`
+	Data      string          `db:"data;not null"`
 	Type      PrivateDataType `gorm:"type:enum('UNKNOWN', 'TEXT', 'FILE', 'AUTH', 'BANK')"`
 	CreatedAt *time.Time      `db:"created_at;not null"`
 	UpdatedAt *time.Time      `db:"updated_at;not null"`
