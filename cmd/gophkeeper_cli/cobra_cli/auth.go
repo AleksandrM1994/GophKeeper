@@ -1,35 +1,66 @@
 package cobra_cli
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
+
+	"github.com/GophKeeper/internal/client"
+	"github.com/GophKeeper/internal/handlers/user"
 )
 
 // authCmd represents the auth command
-var authCmd = &cobra.Command{
-	Use:   "auth",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
+func NewAuthCmd(gophKeeperClient *client.ClientImpl) *cobra.Command {
+	authCmd := &cobra.Command{
+		Use:   "auth",
+		Short: "A brief description of your command",
+		Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("auth called")
-	},
-}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
 
-func init() {
+			// Шаг 1: спрашиваем логин
+			reader := bufio.NewReader(os.Stdin)
+			fmt.Print("Введите логин: ")
+			login, err := reader.ReadString('\n')
+			if err != nil {
+				os.Exit(1)
+			}
+			// Убираем символ переноса строки
+			login = login[:len(login)-1]
 
-	// Here you will define your flags and configuration settings.
+			// Шаг 2: спрашиваем пароль (в невидимом режиме)
+			fmt.Print("Введите пароль: ")
+			bytePassword, err := term.ReadPassword(int(os.Stdin.Fd()))
+			fmt.Println() // перевод строки после ввода пароля
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Ошибка при вводе пароля: %v\n", err)
+				os.Exit(1)
+			}
+			password := string(bytePassword)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// authCmd.PersistentFlags().String("foo", "", "A help for foo")
+			// Дальше вы можете использовать login и password
+			fmt.Printf("Вы ввели:\n  логин: %s\n  пароль: %s\n", login, password)
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// authCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+			res, errAuthUser := gophKeeperClient.AuthUser(ctx, &user.AuthUserRequest{
+				Login:    login,
+				Password: password,
+			})
+			if errAuthUser != nil {
+				return fmt.Errorf("Ошибка при авторизации: %v", errAuthUser)
+			}
+
+			fmt.Println(res)
+			return nil
+		},
+	}
+
+	return authCmd
 }

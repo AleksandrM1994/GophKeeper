@@ -11,7 +11,7 @@ import (
 )
 
 type SavePrivateDataRequest struct {
-	Data string                     `json:"data"`
+	Data []byte                     `json:"data"`
 	Type repository.PrivateDataType `json:"type"`
 }
 
