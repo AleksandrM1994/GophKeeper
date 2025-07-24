@@ -6,27 +6,33 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/GophKeeper/config"
+	"github.com/GophKeeper/internal/middlewares"
 	"github.com/GophKeeper/internal/service/private_data"
+	"github.com/GophKeeper/internal/service/user"
 )
 
 type PrivateDataController struct {
-	cfg     config.Config
-	lg      *zap.SugaredLogger
-	service *private_data.PrivateDataServiceImpl
+	cfg                config.Config
+	lg                 *zap.SugaredLogger
+	userService        *user.UserServiceImpl
+	privateDataService *private_data.PrivateDataServiceImpl
 }
 
 func NewController(
 	cfg config.Config,
 	logger *zap.SugaredLogger,
-	service *private_data.PrivateDataServiceImpl,
+	userService *user.UserServiceImpl,
+	privateDataService *private_data.PrivateDataServiceImpl,
 ) *PrivateDataController {
 	return &PrivateDataController{
-		cfg:     cfg,
-		lg:      logger,
-		service: service,
+		cfg:                cfg,
+		lg:                 logger,
+		userService:        userService,
+		privateDataService: privateDataService,
 	}
 }
 
 func (c *PrivateDataController) RegisterRoutes(r *gin.Engine) {
-	r.POST("/api/private-data/save", c.SavePrivateData)
+	privateDataGroup := r.Group("/api/private-data").Use(middlewares.Authorizer(c.lg, c.cfg, c.userService))
+	privateDataGroup.POST("/save", c.SavePrivateData)
 }

@@ -39,12 +39,13 @@ func GenerateJWT(secret string, userID string) (string, error) {
 
 // Проверка и разбор токена
 func ParseJWT(secret string, jwtString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(jwtString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(jwtString, claims, func(token *jwt.Token) (interface{}, error) {
 		// Проверка метода подписи
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return secret, nil
+		return []byte(secret), nil
 	})
 	if err != nil {
 		return nil, err

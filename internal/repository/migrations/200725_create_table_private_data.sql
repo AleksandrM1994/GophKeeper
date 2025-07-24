@@ -6,7 +6,7 @@ TYPE private_data_type AS ENUM ('UNKNOWN', 'TEXT', 'FILE', 'AUTH', 'BANK');
 create table if not exists private_data
 (
     id         varchar(50) primary key,
-    data       json        not null,
+    data       text        not null,
     type private_data_type default 'UNKNOWN',
     created_at TIMESTAMP   not null,
     updated_at TIMESTAMP   not null,

@@ -50,7 +50,7 @@ func main() {
 
 	userController := userHandlers.NewController(cfg, &lg, userServiceImpl)
 	userController.RegisterRoutes(g)
-	privateDataController := privateDataHandlers.NewController(cfg, &lg, privateDataServiceImpl)
+	privateDataController := privateDataHandlers.NewController(cfg, &lg, userServiceImpl, privateDataServiceImpl)
 	privateDataController.RegisterRoutes(g)
 
 	server := &http.Server{

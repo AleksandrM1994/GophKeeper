@@ -41,9 +41,9 @@ func (s *ServiceImpl) SaveUserData(record UserData) error {
 	})
 }
 
-func (s *ServiceImpl) GetUserData(login string) error {
-	var data UserData
-	return s.db.View(func(tx *bbolt.Tx) error {
+func (s *ServiceImpl) GetUserData(login string) (*UserData, error) {
+	var data *UserData
+	err := s.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(bucketName))
 		if b == nil {
 			return fmt.Errorf("bucket not found")
@@ -52,6 +52,14 @@ func (s *ServiceImpl) GetUserData(login string) error {
 		if buf == nil {
 			return fmt.Errorf("user not found")
 		}
-		return json.Unmarshal(buf, &data)
+		err := json.Unmarshal(buf, &data)
+		if err != nil {
+			return fmt.Errorf("json unmarshal: %s", err)
+		}
+		return nil
 	})
+	if err != nil {
+		s.lg.Errorf("get userdata: %s", err)
+	}
+	return data, nil
 }

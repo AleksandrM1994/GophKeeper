@@ -45,7 +45,7 @@ func (r *UserRepositoryImpl) GetUserByLogPass(ctx context.Context, login, passwo
 
 func (r *UserRepositoryImpl) GetUserByID(ctx context.Context, userID string) (*User, error) {
 	var user User
-	err := r.db.WithContext(ctx).Model(&user).Where("id = ?", userID).Find(&user).Error
+	err := r.db.WithContext(ctx).Model(&user).Where("id = ?", userID).Take(&user).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}

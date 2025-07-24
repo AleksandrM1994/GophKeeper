@@ -7,14 +7,20 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/GophKeeper/internal/client/dto"
 	"github.com/GophKeeper/internal/handlers/private_data"
 )
 
-func (c *ClientImpl) SavePrivateData(ctx context.Context, req *private_data.SavePrivateDataRequest) error {
+func (c *ClientImpl) SavePrivateData(ctx context.Context, req *dto.SavePrivateDataRequest) error {
 	c.lg.Infow("client save private data request", "req", req)
 	url := c.cfg.GetString("gophkeeper_server.save_host")
 
-	bytesData, errMarshal := json.Marshal(req)
+	saveData := &private_data.SavePrivateDataRequest{
+		Data: req.Data,
+		Type: req.Type,
+	}
+
+	bytesData, errMarshal := json.Marshal(saveData)
 	if errMarshal != nil {
 		return fmt.Errorf("json.Marshal: %w", errMarshal)
 	}
@@ -25,6 +31,9 @@ func (c *ClientImpl) SavePrivateData(ctx context.Context, req *private_data.Save
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
+
+	// Добавляем заголовок Authorization
+	requestWithContext.Header.Set("Authorization", "Bearer "+req.JWT)
 
 	res, err := c.httpClient.Do(requestWithContext)
 	if err != nil {

@@ -16,6 +16,17 @@ type SavePrivateDataRequest struct {
 }
 
 func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
+	value, ok := ctx.Get("user_id")
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, custom_errs.ErrorResponse{
+			Code:  http.StatusUnauthorized,
+			Error: "empty user id",
+		})
+		return
+	}
+
+	userID := value.(string)
+
 	var req *SavePrivateDataRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, custom_errs.ErrorResponse{
@@ -27,9 +38,10 @@ func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 
 	c.lg.Infow("server save private data request", "req", req)
 
-	err := c.service.SavePrivateData(ctx, &dto.SavePrivateDataRequest{
-		Data: req.Data,
-		Type: req.Type,
+	err := c.privateDataService.SavePrivateData(ctx, &dto.SavePrivateDataRequest{
+		Data:   req.Data,
+		Type:   req.Type,
+		UserID: userID,
 	})
 	if err != nil {
 		custom_errs.RespondWithError(ctx, err)

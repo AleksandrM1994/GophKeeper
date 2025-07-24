@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/GophKeeper/internal/client"
-	"github.com/GophKeeper/internal/handlers/private_data"
+	"github.com/GophKeeper/internal/client/dto"
 	"github.com/GophKeeper/internal/repository"
 	"github.com/GophKeeper/internal/storage/bbolt"
 )
@@ -55,7 +55,7 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 			}
 
 			if login == "" {
-				return errors.New("обязательно указать --login")
+				return errors.New("обязательно указать --user")
 			}
 
 			var data []byte
@@ -85,9 +85,19 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 
 			encodedData := base64.StdEncoding.EncodeToString(data)
 
-			err := gophKeeperClient.SavePrivateData(ctx, &private_data.SavePrivateDataRequest{
+			fmt.Println(encodedData)
+
+			userData, errGetUserData := bboltService.GetUserData(login)
+			if errGetUserData != nil {
+				return fmt.Errorf("get user data: %w", errGetUserData)
+			}
+
+			fmt.Println(login)
+
+			err := gophKeeperClient.SavePrivateData(ctx, &dto.SavePrivateDataRequest{
 				Type: dataType,
 				Data: []byte(encodedData),
+				JWT:  userData.JWT,
 			})
 			if err != nil {
 				fmt.Println(err)
@@ -111,9 +121,9 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 	saveCmd.Flags().StringVarP(&authPass, "auth-pass", "", "", "Authentication password")
 
 	saveCmd.Flags().BoolVarP(&bankMode, "bank", "b", false, "Save bank data")
-	saveCmd.Flags().StringVarP(&bankCardNumber, "bank-card", "", "", "Bank card number")
-	saveCmd.Flags().StringVarP(&bankCardPersonName, "bank person name", "", "", "Bank card number")
-	saveCmd.Flags().StringVarP(&bankCardActiveDateTo, "bank ", "", "", "Bank card number")
+	saveCmd.Flags().StringVarP(&bankCardNumber, "bank-number", "", "", "Bank card number")
+	saveCmd.Flags().StringVarP(&bankCardPersonName, "bank-name", "", "", "Bank card number")
+	saveCmd.Flags().StringVarP(&bankCardActiveDateTo, "bank-date", "", "", "Bank card number")
 	saveCmd.Flags().StringVarP(&bankCardCVC, "bank-cvc", "", "", "Bank CVC code")
 
 	saveCmd.Flags().StringVarP(&login, "login", "l", "", "Обязательный логин для данных")
