@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/GophKeeper/internal/repository"
 	"github.com/GophKeeper/internal/service"
 	"github.com/GophKeeper/internal/service/private_data/dto"
@@ -27,6 +29,7 @@ func (s *PrivateDataServiceImpl) SavePrivateData(ctx context.Context, req *dto.S
 	}
 
 	err := s.privateDataRepo.CreatePrivateData(ctx, &repository.PrivateData{
+		ID:        uuid.New().String(),
 		Data:      req.Data,
 		Type:      req.Type,
 		CreatedAt: service.DatePtr(timeNow),

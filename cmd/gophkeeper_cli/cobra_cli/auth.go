@@ -10,19 +10,17 @@ import (
 
 	"github.com/GophKeeper/internal/client"
 	"github.com/GophKeeper/internal/handlers/user"
+	"github.com/GophKeeper/internal/storage/bbolt"
 )
 
 // authCmd represents the auth command
-func NewAuthCmd(gophKeeperClient *client.ClientImpl) *cobra.Command {
+func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.ServiceImpl) *cobra.Command {
 	authCmd := &cobra.Command{
 		Use:   "auth",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+		Short: "авторизация пользователя в системе",
+		Long: `авторизация пользователя в системе обязательна для выполнения команд, 
+которые предоставляют доступ к возможностям системы
+нужно ввести логин и пароль, программа запрашивает их у пользователя поочереди`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
@@ -57,7 +55,14 @@ to quickly create a Cobra application.`,
 				return fmt.Errorf("Ошибка при авторизации: %v", errAuthUser)
 			}
 
-			fmt.Println(res)
+			errSaveUser := bboltService.SaveUserData(bbolt.UserData{
+				Login: login,
+				JWT:   res.JWT,
+			})
+			if errSaveUser != nil {
+				return fmt.Errorf("Ошибка при сохранении информации о пользователе: %v", errSaveUser)
+			}
+
 			return nil
 		},
 	}

@@ -11,6 +11,7 @@ import (
 )
 
 func (c *ClientImpl) SavePrivateData(ctx context.Context, req *private_data.SavePrivateDataRequest) error {
+	c.lg.Infow("client save private data request", "req", req)
 	url := c.cfg.GetString("gophkeeper_server.save_host")
 
 	bytesData, errMarshal := json.Marshal(req)

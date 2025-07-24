@@ -11,6 +11,7 @@ import (
 	"github.com/GophKeeper/cmd/gophkeeper_cli/cobra_cli"
 	"github.com/GophKeeper/config"
 	"github.com/GophKeeper/internal/client"
+	"github.com/GophKeeper/internal/storage/bbolt"
 )
 
 func main() {
@@ -34,15 +35,23 @@ func main() {
 		log.Fatal(err)
 	}
 
+	db, err := bbolt.ConnectBbolt()
+	if err != nil {
+		lg.Fatal(err)
+	}
+	defer db.Close()
+
+	bboltService := bbolt.NewServiceImpl(&lg, db)
+
 	gophKeeperClient := client.NewClient(&lg, cfg)
 
 	rootCmd := cobra_cli.NewRootCmd()
 
-	authCmd := cobra_cli.NewAuthCmd(gophKeeperClient)
+	authCmd := cobra_cli.NewAuthCmd(gophKeeperClient, bboltService)
 	rootCmd.AddCommand(authCmd)
 
-	saveCmd := cobra_cli.NewSaveCmd(gophKeeperClient)
-	authCmd.AddCommand(saveCmd)
+	saveCmd := cobra_cli.NewSaveCmd(gophKeeperClient, bboltService)
+	rootCmd.AddCommand(saveCmd)
 
 	err = rootCmd.Execute()
 	if err != nil {

@@ -25,6 +25,8 @@ func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 		return
 	}
 
+	c.lg.Infow("server save private data request", "req", req)
+
 	err := c.service.SavePrivateData(ctx, &dto.SavePrivateDataRequest{
 		Data: req.Data,
 		Type: req.Type,

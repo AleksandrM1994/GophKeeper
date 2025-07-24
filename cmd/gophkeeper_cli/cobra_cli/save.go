@@ -1,38 +1,47 @@
 package cobra_cli
 
 import (
-	"bufio"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/GophKeeper/internal/client"
 	"github.com/GophKeeper/internal/handlers/private_data"
+	"github.com/GophKeeper/internal/repository"
+	"github.com/GophKeeper/internal/storage/bbolt"
 )
 
 var (
-	textMode bool
-	fileMode bool
-	authMode bool
-	bankMode bool
+	textMode             bool
+	fileMode             bool
+	authMode             bool
+	bankMode             bool
+	login                string
+	textData             string
+	filePath             string
+	authLogin            string
+	authPass             string
+	bankCardNumber       string
+	bankCardPersonName   string
+	bankCardActiveDateTo string
+	bankCardCVC          string
 )
 
-// authCmd represents the auth command
-func NewSaveCmd(gophKeeperClient *client.ClientImpl) *cobra.Command {
+func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.ServiceImpl) *cobra.Command {
 	saveCmd := &cobra.Command{
 		Use:   "save",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+		Short: "Сохранить данные (текст, файл, аутентификацию или банковские данные)",
+		Long: `Команда save позволяет сохранять разные типы данных:
+- текст (--text)
+- файл (--file)
+- данные аутентификации (--auth)
+- банковские данные (--bank)
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Обязательно указать --login и ровно один из флагов.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("save called")
 			ctx := cmd.Context()
 
 			modes := 0
@@ -45,24 +54,69 @@ to quickly create a Cobra application.`,
 				return errors.New("нужно указать ровно один режим: --text или --file или --auth или --bank")
 			}
 
-			reader := bufio.NewReader(os.Stdin)
-			text, err := reader.ReadString('\n')
-			if err != nil {
-				return err
+			if login == "" {
+				return errors.New("обязательно указать --login")
 			}
-			text = strings.TrimRight(text, "\r\n")
 
-			fmt.Println("text: ", text)
+			var data []byte
+			var dataType repository.PrivateDataType
 
-			err = gophKeeperClient.SavePrivateData(ctx, &private_data.SavePrivateDataRequest{
-				Data: []byte("{\"data\":\"123\"}"),
+			switch {
+			case textMode:
+				dataType = repository.PrivateDataTypeText
+				data = []byte(textData)
+			case fileMode:
+				dataType = repository.PrivateDataTypeFile
+				fileContent, err := os.ReadFile(filePath)
+				if err != nil {
+					return fmt.Errorf("не удалось прочитать файл: %w", err)
+				}
+				data = fileContent
+			case authMode:
+				dataType = repository.PrivateDataTypeAuth
+				authData := fmt.Sprintf("login:%s|password:%s", authLogin, authPass)
+				data = []byte(authData)
+			case bankMode:
+				dataType = repository.PrivateDataTypeBank
+				bankData := fmt.Sprintf("number:%s|name:%s|date:%s|cvc:%s",
+					bankCardNumber, bankCardPersonName, bankCardActiveDateTo, bankCardCVC)
+				data = []byte(bankData)
+			}
+
+			encodedData := base64.StdEncoding.EncodeToString(data)
+
+			err := gophKeeperClient.SavePrivateData(ctx, &private_data.SavePrivateDataRequest{
+				Type: dataType,
+				Data: []byte(encodedData),
 			})
 			if err != nil {
+				fmt.Println(err)
 				return fmt.Errorf("save private data: %w", err)
 			}
 
+			fmt.Printf("Данные успешно сохранены под логином '%s' (тип: %s)\n", login, dataType)
 			return nil
 		},
 	}
+
+	// Регистрация флагов
+	saveCmd.Flags().BoolVarP(&textMode, "text", "t", false, "Save text data")
+	saveCmd.Flags().StringVarP(&textData, "text-data", "", "", "Text to save")
+
+	saveCmd.Flags().BoolVarP(&fileMode, "file", "f", false, "Save file data")
+	saveCmd.Flags().StringVarP(&filePath, "file-path", "", "", "Path to file to save")
+
+	saveCmd.Flags().BoolVarP(&authMode, "auth", "a", false, "Save authentication data")
+	saveCmd.Flags().StringVarP(&authLogin, "auth-login", "", "", "Authentication login")
+	saveCmd.Flags().StringVarP(&authPass, "auth-pass", "", "", "Authentication password")
+
+	saveCmd.Flags().BoolVarP(&bankMode, "bank", "b", false, "Save bank data")
+	saveCmd.Flags().StringVarP(&bankCardNumber, "bank-card", "", "", "Bank card number")
+	saveCmd.Flags().StringVarP(&bankCardPersonName, "bank person name", "", "", "Bank card number")
+	saveCmd.Flags().StringVarP(&bankCardActiveDateTo, "bank ", "", "", "Bank card number")
+	saveCmd.Flags().StringVarP(&bankCardCVC, "bank-cvc", "", "", "Bank CVC code")
+
+	saveCmd.Flags().StringVarP(&login, "login", "l", "", "Обязательный логин для данных")
+
 	return saveCmd
 }

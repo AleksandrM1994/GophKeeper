@@ -12,6 +12,7 @@ require (
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
+	go.etcd.io/bbolt v1.4.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/term v0.32.0
 	gorm.io/driver/postgres v1.6.0
