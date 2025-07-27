@@ -11,8 +11,9 @@ import (
 )
 
 type SavePrivateDataRequest struct {
-	Data []byte                     `json:"data"`
-	Type repository.PrivateDataType `json:"type"`
+	Data  []byte                     `json:"data"`
+	Type  repository.PrivateDataType `json:"type"`
+	Nonce []byte                     `json:"nonce"`
 }
 
 func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
@@ -42,6 +43,7 @@ func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 		Data:   req.Data,
 		Type:   req.Type,
 		UserID: userID,
+		Nonce:  req.Nonce,
 	})
 	if err != nil {
 		custom_errs.RespondWithError(ctx, err)

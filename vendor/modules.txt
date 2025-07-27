@@ -228,13 +228,9 @@ github.com/ugorji/go/codec
 # go.etcd.io/bbolt v1.4.2
 ## explicit; go 1.23
 go.etcd.io/bbolt
-go.etcd.io/bbolt/cmd/bbolt
 go.etcd.io/bbolt/errors
 go.etcd.io/bbolt/internal/common
 go.etcd.io/bbolt/internal/freelist
-go.etcd.io/bbolt/internal/guts_cli
-go.etcd.io/bbolt/internal/surgeon
-go.etcd.io/bbolt/version
 # go.uber.org/multierr v1.11.0
 ## explicit; go 1.19
 go.uber.org/multierr

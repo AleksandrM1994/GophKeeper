@@ -1,7 +1,6 @@
 package cobra_cli
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"github.com/GophKeeper/internal/client/dto"
 	"github.com/GophKeeper/internal/repository"
 	"github.com/GophKeeper/internal/storage/bbolt"
+	"github.com/GophKeeper/internal/utils"
 )
 
 var (
@@ -83,9 +83,7 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 				data = []byte(bankData)
 			}
 
-			encodedData := base64.StdEncoding.EncodeToString(data)
-
-			fmt.Println(encodedData)
+			fmt.Println(data)
 
 			userData, errGetUserData := bboltService.GetUserData(login)
 			if errGetUserData != nil {
@@ -94,10 +92,20 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 
 			fmt.Println(login)
 
+			fmt.Println(userData.Key)
+
+			encryptData, nonce, errEncrypt := utils.Encrypt(data, userData.Key)
+			if errEncrypt != nil {
+				return fmt.Errorf("encrypt data: %w", errEncrypt)
+			}
+
+			fmt.Println(nonce)
+
 			err := gophKeeperClient.SavePrivateData(ctx, &dto.SavePrivateDataRequest{
-				Type: dataType,
-				Data: []byte(encodedData),
-				JWT:  userData.JWT,
+				Type:  dataType,
+				Data:  encryptData,
+				JWT:   userData.JWT,
+				Nonce: nonce,
 			})
 			if err != nil {
 				fmt.Println(err)

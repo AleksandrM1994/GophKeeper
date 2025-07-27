@@ -2,6 +2,7 @@ package cobra_cli
 
 import (
 	"bufio"
+	"crypto/aes"
 	"fmt"
 	"os"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/GophKeeper/internal/client"
 	"github.com/GophKeeper/internal/handlers/user"
 	"github.com/GophKeeper/internal/storage/bbolt"
+	"github.com/GophKeeper/internal/utils"
 )
 
 // authCmd represents the auth command
@@ -52,15 +54,35 @@ func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 				Password: password,
 			})
 			if errAuthUser != nil {
-				return fmt.Errorf("Ошибка при авторизации: %v", errAuthUser)
+				return fmt.Errorf("ошибка при авторизации: %v", errAuthUser)
 			}
 
-			errSaveUser := bboltService.SaveUserData(bbolt.UserData{
-				Login: login,
-				JWT:   res.JWT,
-			})
+			userData, errGetUserData := bboltService.GetUserData(login)
+			if errGetUserData != nil {
+				return fmt.Errorf("ошибка при получении информации о пользователе: %v", errGetUserData)
+			}
+
+			if userData.Key == nil {
+				key, errGenerateKey := utils.GenerateKey(2 * aes.BlockSize)
+				if errGenerateKey != nil {
+					return fmt.Errorf("ошибка при генерации ключа: %v", errGenerateKey)
+				}
+
+				fmt.Println(key, len(key))
+
+				userData = &bbolt.UserData{
+					Login: login,
+					Key:   key,
+				}
+				if errGenerateKey != nil {
+					return fmt.Errorf("ошибка при генерации ключа: %v", errGenerateKey)
+				}
+			}
+			userData.JWT = res.JWT
+
+			errSaveUser := bboltService.SaveUserData(userData)
 			if errSaveUser != nil {
-				return fmt.Errorf("Ошибка при сохранении информации о пользователе: %v", errSaveUser)
+				return fmt.Errorf("ошибка при сохранении информации о пользователе: %v", errSaveUser)
 			}
 
 			return nil

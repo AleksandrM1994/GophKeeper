@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	dbPath = "internal/storage/bbolt/db/cli_data.db"
+	dbPath     = "internal/storage/bbolt/db/cli_data.db"
+	bucketName = "users_data"
 )
 
 func ConnectBbolt() (*bbolt.DB, error) {
@@ -26,6 +27,16 @@ func ConnectBbolt() (*bbolt.DB, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not open bbolt db: %v", err)
+	}
+
+	err = db.Update(func(tx *bbolt.Tx) error {
+		if _, err := tx.CreateBucketIfNotExists([]byte(bucketName)); err != nil {
+			return fmt.Errorf("could not create bucket: %v", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("db.Update: %v", err)
 	}
 
 	return db, nil

@@ -2,7 +2,6 @@ package private_data
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -29,18 +28,14 @@ func (s *PrivateDataServiceImpl) SavePrivateData(ctx context.Context, req *dto.S
 		return fmt.Errorf("time.Parse:%w", errTimeParse)
 	}
 
-	decodeBytes, errDecodeString := base64.StdEncoding.DecodeString(string(req.Data))
-	if errDecodeString != nil {
-		return fmt.Errorf("base64.DecodeString: %w", errDecodeString)
-	}
-
 	err := s.privateDataRepo.CreatePrivateData(ctx, &repository.PrivateData{
 		ID:        uuid.New().String(),
-		Data:      decodeBytes,
+		Data:      req.Data,
 		Type:      req.Type,
 		CreatedAt: service.DatePtr(timeNow),
 		UpdatedAt: service.DatePtr(timeNow),
 		UserID:    req.UserID,
+		Nonce:     req.Nonce,
 	})
 	if err != nil {
 		return fmt.Errorf("save private data error: %v", err)

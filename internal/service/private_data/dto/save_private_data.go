@@ -6,6 +6,7 @@ type SavePrivateDataRequest struct {
 	Data   []byte
 	Type   repository.PrivateDataType
 	UserID string
+	Nonce  []byte
 }
 
 func (r *SavePrivateDataRequest) Validate() error {

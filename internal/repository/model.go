@@ -3,10 +3,10 @@ package repository
 import "time"
 
 type User struct {
-	ID       string `db:"id;primary_key"`
-	Login    string `db:"login;not null;unique"`
-	Password string `db:"password;not null"`
-	JWT      string `db:"jwt;unique"`
+	ID       string `db:"primary_key"`
+	Login    string `db:"not null;unique"`
+	Password string `db:"not null"`
+	JWT      string `db:"unique"`
 }
 
 func (User) TableName() string {
@@ -14,12 +14,13 @@ func (User) TableName() string {
 }
 
 type PrivateData struct {
-	ID        string          `db:"id;primary_key"`
-	Data      []byte          `db:"text;not null"`
+	ID        string          `db:"primary_key"`
+	Data      []byte          `db:"not null"`
 	Type      PrivateDataType `gorm:"type:enum('UNKNOWN', 'TEXT', 'FILE', 'AUTH', 'BANK')"`
-	CreatedAt *time.Time      `db:"created_at;not null"`
-	UpdatedAt *time.Time      `db:"updated_at;not null"`
-	UserID    string          `db:"user_id;not null"`
+	CreatedAt *time.Time      `db:"not null"`
+	UpdatedAt *time.Time      `db:"not null"`
+	UserID    string          `db:"not null"`
+	Nonce     []byte          `db:"not null"`
 }
 
 func (PrivateData) TableName() string {

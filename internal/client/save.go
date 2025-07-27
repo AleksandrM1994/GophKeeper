@@ -16,8 +16,9 @@ func (c *ClientImpl) SavePrivateData(ctx context.Context, req *dto.SavePrivateDa
 	url := c.cfg.GetString("gophkeeper_server.save_host")
 
 	saveData := &private_data.SavePrivateDataRequest{
-		Data: req.Data,
-		Type: req.Type,
+		Data:  req.Data,
+		Type:  req.Type,
+		Nonce: req.Nonce,
 	}
 
 	bytesData, errMarshal := json.Marshal(saveData)
