@@ -11,6 +11,7 @@ import (
 	"github.com/GophKeeper/cmd/gophkeeper_cli/cobra_cli"
 	"github.com/GophKeeper/config"
 	"github.com/GophKeeper/internal/client"
+	"github.com/GophKeeper/internal/kafka"
 	"github.com/GophKeeper/internal/storage/bbolt"
 )
 
@@ -56,5 +57,11 @@ func main() {
 	err = rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
+	}
+
+	kafkaController := kafka.NewController(&lg, cfg.GetString("kafka.host"), bboltService)
+	errInitKafkaTopics := kafkaController.InitKafkaTopics()
+	if errInitKafkaTopics != nil {
+		lg.Fatalf("kafkaController.InitKafkaTopics, %w", errInitKafkaTopics)
 	}
 }

@@ -7,15 +7,11 @@ import (
 
 	custom_errs "github.com/GophKeeper/internal/errors"
 	"github.com/GophKeeper/internal/service/user/dto"
+	api "github.com/GophKeeper/pkg/api"
 )
 
-type RegisterUserRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
 func (c *UserController) RegisterUserHandler(ctx *gin.Context) {
-	var req *RegisterUserRequest
+	var req *api.RegisterUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, custom_errs.ErrorResponse{
 			Code:  http.StatusBadRequest,

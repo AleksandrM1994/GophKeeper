@@ -8,10 +8,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/GophKeeper/internal/handlers/user"
+	api "github.com/GophKeeper/pkg/api"
 )
 
-func (c *ClientImpl) AuthUser(ctx context.Context, req *user.AuthUserRequest) (*user.AuthUserResponse, error) {
+func (c *ClientImpl) AuthUser(ctx context.Context, req *api.AuthUserRequest) (*api.AuthUserResponse, error) {
 	url := c.cfg.GetString("gophkeeper_server.auth_host")
 
 	bytesData, errMarshal := json.Marshal(req)
@@ -37,7 +37,7 @@ func (c *ClientImpl) AuthUser(ctx context.Context, req *user.AuthUserRequest) (*
 		return nil, fmt.Errorf("io.ReadAll: %w", errReadAll)
 	}
 
-	var authUserResponse *user.AuthUserResponse
+	var authUserResponse *api.AuthUserResponse
 
 	errUnmarshal := json.Unmarshal(resBytes, &authUserResponse)
 	if errUnmarshal != nil {

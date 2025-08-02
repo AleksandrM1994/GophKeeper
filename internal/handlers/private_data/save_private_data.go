@@ -8,13 +8,8 @@ import (
 	custom_errs "github.com/GophKeeper/internal/errors"
 	"github.com/GophKeeper/internal/repository"
 	"github.com/GophKeeper/internal/service/private_data/dto"
+	api "github.com/GophKeeper/pkg/api"
 )
-
-type SavePrivateDataRequest struct {
-	Data  []byte                     `json:"data"`
-	Type  repository.PrivateDataType `json:"type"`
-	Nonce []byte                     `json:"nonce"`
-}
 
 func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 	value, ok := ctx.Get("user_id")
@@ -28,7 +23,7 @@ func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 
 	userID := value.(string)
 
-	var req *SavePrivateDataRequest
+	var req api.SavePrivateDataRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, custom_errs.ErrorResponse{
 			Code:  http.StatusBadRequest,
@@ -41,7 +36,7 @@ func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 
 	err := c.privateDataService.SavePrivateData(ctx, &dto.SavePrivateDataRequest{
 		Data:   req.Data,
-		Type:   req.Type,
+		Type:   FromProto(req.Type),
 		UserID: userID,
 		Nonce:  req.Nonce,
 	})
@@ -51,4 +46,19 @@ func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, nil)
+}
+
+func FromProto(in api.PrivateDataType) repository.PrivateDataType {
+	switch in {
+	case api.PrivateDataType_TEXT:
+		return repository.PrivateDataTypeText
+	case api.PrivateDataType_FILE:
+		return repository.PrivateDataTypeFile
+	case api.PrivateDataType_AUTH:
+		return repository.PrivateDataTypeAuth
+	case api.PrivateDataType_BANK:
+		return repository.PrivateDataTypeBank
+	default:
+		return repository.PrivateDataTypeUnknown
+	}
 }

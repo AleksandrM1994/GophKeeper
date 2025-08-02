@@ -8,16 +8,17 @@ import (
 	"net/http"
 
 	"github.com/GophKeeper/internal/client/dto"
-	"github.com/GophKeeper/internal/handlers/private_data"
+	"github.com/GophKeeper/internal/repository"
+	api "github.com/GophKeeper/pkg/api"
 )
 
 func (c *ClientImpl) SavePrivateData(ctx context.Context, req *dto.SavePrivateDataRequest) error {
 	c.lg.Infow("client save private data request", "req", req)
 	url := c.cfg.GetString("gophkeeper_server.save_host")
 
-	saveData := &private_data.SavePrivateDataRequest{
+	saveData := &api.SavePrivateDataRequest{
 		Data:  req.Data,
-		Type:  req.Type,
+		Type:  ToProto(req.Type),
 		Nonce: req.Nonce,
 	}
 
@@ -45,4 +46,19 @@ func (c *ClientImpl) SavePrivateData(ctx context.Context, req *dto.SavePrivateDa
 	fmt.Println("response :", res.Body)
 
 	return nil
+}
+
+func ToProto(in repository.PrivateDataType) api.PrivateDataType {
+	switch in {
+	case repository.PrivateDataTypeText:
+		return api.PrivateDataType_TEXT
+	case repository.PrivateDataTypeFile:
+		return api.PrivateDataType_FILE
+	case repository.PrivateDataTypeAuth:
+		return api.PrivateDataType_AUTH
+	case repository.PrivateDataTypeBank:
+		return api.PrivateDataType_BANK
+	default:
+		return api.PrivateDataType_UNKNOWN
+	}
 }

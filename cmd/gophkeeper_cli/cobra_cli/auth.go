@@ -10,9 +10,9 @@ import (
 	"golang.org/x/term"
 
 	"github.com/GophKeeper/internal/client"
-	"github.com/GophKeeper/internal/handlers/user"
 	"github.com/GophKeeper/internal/storage/bbolt"
 	"github.com/GophKeeper/internal/utils"
+	api "github.com/GophKeeper/pkg/api"
 )
 
 // authCmd represents the auth command
@@ -49,7 +49,7 @@ func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 			// Дальше вы можете использовать login и password
 			fmt.Printf("Вы ввели:\n  логин: %s\n  пароль: %s\n", login, password)
 
-			res, errAuthUser := gophKeeperClient.AuthUser(ctx, &user.AuthUserRequest{
+			res, errAuthUser := gophKeeperClient.AuthUser(ctx, &api.AuthUserRequest{
 				Login:    login,
 				Password: password,
 			})
@@ -78,7 +78,7 @@ func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 					return fmt.Errorf("ошибка при генерации ключа: %v", errGenerateKey)
 				}
 			}
-			userData.JWT = res.JWT
+			userData.JWT = res.Jwt
 
 			errSaveUser := bboltService.SaveUserData(userData)
 			if errSaveUser != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/GophKeeper/config"
 	privateDataHandlers "github.com/GophKeeper/internal/handlers/private_data"
 	userHandlers "github.com/GophKeeper/internal/handlers/user"
+	"github.com/GophKeeper/internal/kafka"
 	"github.com/GophKeeper/internal/repository"
 	privateDataService "github.com/GophKeeper/internal/service/private_data"
 	userService "github.com/GophKeeper/internal/service/user"
@@ -58,6 +59,12 @@ func main() {
 		Handler:      g,
 		ReadTimeout:  time.Minute,
 		WriteTimeout: time.Minute,
+	}
+
+	kafkaController := kafka.NewController(&lg, cfg.KafkaHost, nil)
+	errInitKafkaTopics := kafkaController.InitKafkaTopics()
+	if errInitKafkaTopics != nil {
+		lg.Fatalf("kafkaController.InitKafkaTopics, %w", errInitKafkaTopics)
 	}
 
 	err = server.ListenAndServe()

@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	dbPath     = "internal/storage/bbolt/db/cli_data.db"
-	bucketName = "users_data"
+	dbPath            = "internal/storage/bbolt/db/cli_data.db"
+	bucketUserData    = "users_data"
+	bucketPrivateData = "private_data"
 )
 
 func ConnectBbolt() (*bbolt.DB, error) {
@@ -30,8 +31,11 @@ func ConnectBbolt() (*bbolt.DB, error) {
 	}
 
 	err = db.Update(func(tx *bbolt.Tx) error {
-		if _, err := tx.CreateBucketIfNotExists([]byte(bucketName)); err != nil {
-			return fmt.Errorf("could not create bucket: %v", err)
+		if _, err := tx.CreateBucketIfNotExists([]byte(bucketUserData)); err != nil {
+			return fmt.Errorf("could not create bucket user data: %v", err)
+		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(bucketPrivateData)); err != nil {
+			return fmt.Errorf("could not create bucket private data: %v", err)
 		}
 		return nil
 	})

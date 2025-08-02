@@ -1,3 +1,5 @@
 gophkeeper_server:
   auth_host: http://localhost:8080/api/user/login
   save_host: http://localhost:8080/api/private-data/save
+kafka:
+  host: localhost:9092

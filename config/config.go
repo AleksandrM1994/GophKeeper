@@ -22,6 +22,7 @@ type Config struct {
 	DSN         string `env:"DATABASE_URI" envDefault:"user=postgres password=postgres dbname=praktikum host=localhost port=5432 sslmode=disable"`
 	HashSecret  string `env:"HASH_SECRET" envDefault:"my_hash_secret"`
 	JWTSecret   string `env:"JWT_SECRET" envDefault:"my_jwt_secret"`
+	KafkaHost   string `env:"KAFKA_HOST" envDefault:"localhost:9092"`
 }
 
 func NewCliConfig() (*viper.Viper, error) {

@@ -7,19 +7,11 @@ import (
 
 	custom_errs "github.com/GophKeeper/internal/errors"
 	"github.com/GophKeeper/internal/service/user/dto"
+	api "github.com/GophKeeper/pkg/api"
 )
 
-type AuthUserRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-}
-
-type AuthUserResponse struct {
-	JWT string `json:"jwt"`
-}
-
 func (c *UserController) AuthUserHandler(ctx *gin.Context) {
-	var req *AuthUserRequest
+	var req *api.AuthUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, custom_errs.ErrorResponse{
 			Code:  http.StatusBadRequest,
@@ -37,5 +29,5 @@ func (c *UserController) AuthUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, &AuthUserResponse{JWT: res.JWT})
+	ctx.JSON(http.StatusOK, &api.AuthUserResponse{Jwt: res.JWT})
 }
