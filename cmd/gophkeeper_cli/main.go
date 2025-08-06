@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"go.uber.org/zap"
 
@@ -12,7 +16,9 @@ import (
 	"github.com/GophKeeper/config"
 	"github.com/GophKeeper/internal/client"
 	"github.com/GophKeeper/internal/kafka"
-	"github.com/GophKeeper/internal/storage/bbolt"
+	"github.com/GophKeeper/internal/storage/sqlite"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -36,32 +42,54 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := bbolt.ConnectBbolt()
+	db, err := sqlite.ConnectSQLite()
 	if err != nil {
 		lg.Fatal(err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
 
-	bboltService := bbolt.NewServiceImpl(&lg, db)
+		}
+	}(db)
+
+	sqliteService := sqlite.NewServiceImpl(&lg, db)
 
 	gophKeeperClient := client.NewClient(&lg, cfg)
 
 	rootCmd := cobra_cli.NewRootCmd()
 
-	authCmd := cobra_cli.NewAuthCmd(gophKeeperClient, bboltService)
+	authCmd := cobra_cli.NewAuthCmd(gophKeeperClient, sqliteService)
 	rootCmd.AddCommand(authCmd)
 
-	saveCmd := cobra_cli.NewSaveCmd(gophKeeperClient, bboltService)
+	saveCmd := cobra_cli.NewSaveCmd(gophKeeperClient, sqliteService)
 	rootCmd.AddCommand(saveCmd)
 
-	err = rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
-
-	kafkaController := kafka.NewController(&lg, cfg.GetString("kafka.host"), bboltService)
+	kafkaController := kafka.NewController(&lg, cfg.GetString("kafka.host"), sqliteService)
 	errInitKafkaTopics := kafkaController.InitKafkaTopics()
 	if errInitKafkaTopics != nil {
 		lg.Fatalf("kafkaController.InitKafkaTopics, %w", errInitKafkaTopics)
 	}
+
+	lg.Info("запуск Kafka-потребителя для топика gophkeeper.privateDataSaved")
+	go func() {
+		if err := kafkaController.ReadMessage(context.Background(), kafka.GophKeeperPrivateDataSavedTopic); err != nil {
+			lg.Fatalf("ошибка при чтении сообщений из Kafka: %w", err)
+		}
+	}()
+
+	// Обработка сигналов завершения работы
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	// Запуск CLI
+	go func() {
+		if err := rootCmd.Execute(); err != nil {
+			os.Exit(1)
+		}
+	}()
+
+	// Ожидание сигнала остановки
+	<-sigChan
+	lg.Info("Получен сигнал завершения. Выход...")
 }

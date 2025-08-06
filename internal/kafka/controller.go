@@ -8,20 +8,20 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 
-	"github.com/GophKeeper/internal/storage/bbolt"
+	"github.com/GophKeeper/internal/storage/sqlite"
 )
 
 type Controller struct {
-	lg           *zap.SugaredLogger
-	kafkaHost    string
-	bboltService *bbolt.ServiceImpl
+	lg            *zap.SugaredLogger
+	kafkaHost     string
+	sqliteService *sqlite.ServiceImpl
 }
 
-func NewController(lg *zap.SugaredLogger, kafkaHost string, bboltService *bbolt.ServiceImpl) *Controller {
+func NewController(lg *zap.SugaredLogger, kafkaHost string, sqliteService *sqlite.ServiceImpl) *Controller {
 	return &Controller{
-		lg:           lg,
-		kafkaHost:    kafkaHost,
-		bboltService: bboltService,
+		lg:            lg,
+		kafkaHost:     kafkaHost,
+		sqliteService: sqliteService,
 	}
 }
 

@@ -5,15 +5,16 @@ go 1.24.1
 require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-gonic/gin v1.10.1
+	github.com/goccy/go-json v0.10.2
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/securecookie v1.1.2
 	github.com/lib/pq v1.10.9
+	github.com/mattn/go-sqlite3 v1.14.30
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/segmentio/kafka-go v0.4.48
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
-	go.etcd.io/bbolt v1.4.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/term v0.32.0
 	google.golang.org/grpc v1.71.0
@@ -34,7 +35,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect

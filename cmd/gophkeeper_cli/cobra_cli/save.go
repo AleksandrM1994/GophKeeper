@@ -10,7 +10,7 @@ import (
 	"github.com/GophKeeper/internal/client"
 	"github.com/GophKeeper/internal/client/dto"
 	"github.com/GophKeeper/internal/repository"
-	"github.com/GophKeeper/internal/storage/bbolt"
+	"github.com/GophKeeper/internal/storage/sqlite"
 	"github.com/GophKeeper/internal/utils"
 )
 
@@ -30,7 +30,7 @@ var (
 	bankCardCVC          string
 )
 
-func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.ServiceImpl) *cobra.Command {
+func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
 	saveCmd := &cobra.Command{
 		Use:   "save",
 		Short: "Сохранить данные (текст, файл, аутентификацию или банковские данные)",
@@ -85,7 +85,7 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 
 			fmt.Println(data)
 
-			userData, errGetUserData := bboltService.GetUserData(login)
+			userData, errGetUserData := sqliteService.GetUserData(login)
 			if errGetUserData != nil {
 				return fmt.Errorf("get user data: %w", errGetUserData)
 			}

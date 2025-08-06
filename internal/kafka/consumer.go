@@ -9,7 +9,7 @@ import (
 
 	"github.com/GophKeeper/internal/repository"
 	"github.com/GophKeeper/internal/service"
-	"github.com/GophKeeper/internal/storage/bbolt"
+	"github.com/GophKeeper/internal/storage/sqlite"
 	api "github.com/GophKeeper/pkg/api"
 )
 
@@ -39,9 +39,9 @@ func (c *Controller) ReadMessage(ctx context.Context, topic string) error {
 
 		createdAt := req.CreatedAt.AsTime()
 		updatedAt := req.UpdatedAt.AsTime()
-		errSavePrivateData := c.bboltService.SavePrivateData(req.Login, &bbolt.PrivateData{
+		errSavePrivateData := c.sqliteService.SavePrivateData(&sqlite.PrivateData{
 			ID:        req.Id,
-			Type:      repository.PrivateDataType(req.Type),
+			Type:      FromProto(req.Type),
 			Data:      req.Data,
 			CreatedAt: service.DatePtr(createdAt),
 			UpdatedAt: service.DatePtr(updatedAt),
@@ -57,4 +57,19 @@ func (c *Controller) ReadMessage(ctx context.Context, topic string) error {
 	}
 
 	return nil
+}
+
+func FromProto(in api.PrivateDataSaved_PrivateDataType) repository.PrivateDataType {
+	switch in {
+	case api.PrivateDataSaved_TEXT_TYPE:
+		return repository.PrivateDataTypeText
+	case api.PrivateDataSaved_FILE_TYPE:
+		return repository.PrivateDataTypeFile
+	case api.PrivateDataSaved_AUTH_TYPE:
+		return repository.PrivateDataTypeAuth
+	case api.PrivateDataSaved_BANK_TYPE:
+		return repository.PrivateDataTypeBank
+	default:
+		return repository.PrivateDataTypeUnknown
+	}
 }

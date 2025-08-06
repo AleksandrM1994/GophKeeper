@@ -10,13 +10,13 @@ import (
 	"golang.org/x/term"
 
 	"github.com/GophKeeper/internal/client"
-	"github.com/GophKeeper/internal/storage/bbolt"
+	"github.com/GophKeeper/internal/storage/sqlite"
 	"github.com/GophKeeper/internal/utils"
 	api "github.com/GophKeeper/pkg/api"
 )
 
 // authCmd represents the auth command
-func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.ServiceImpl) *cobra.Command {
+func NewAuthCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
 	authCmd := &cobra.Command{
 		Use:   "auth",
 		Short: "авторизация пользователя в системе",
@@ -57,12 +57,12 @@ func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 				return fmt.Errorf("ошибка при авторизации: %v", errAuthUser)
 			}
 
-			userData, errGetUserData := bboltService.GetUserData(login)
+			userData, errGetUserData := sqliteService.GetUserData(login)
 			if errGetUserData != nil {
 				return fmt.Errorf("ошибка при получении информации о пользователе: %v", errGetUserData)
 			}
 
-			if userData.Key == nil {
+			if userData == nil {
 				key, errGenerateKey := utils.GenerateKey(2 * aes.BlockSize)
 				if errGenerateKey != nil {
 					return fmt.Errorf("ошибка при генерации ключа: %v", errGenerateKey)
@@ -70,7 +70,7 @@ func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 
 				fmt.Println(key, len(key))
 
-				userData = &bbolt.UserData{
+				userData = &sqlite.UserData{
 					Login: login,
 					Key:   key,
 				}
@@ -80,10 +80,12 @@ func NewAuthCmd(gophKeeperClient *client.ClientImpl, bboltService *bbolt.Service
 			}
 			userData.JWT = res.Jwt
 
-			errSaveUser := bboltService.SaveUserData(userData)
+			errSaveUser := sqliteService.SaveUserData(userData)
 			if errSaveUser != nil {
 				return fmt.Errorf("ошибка при сохранении информации о пользователе: %v", errSaveUser)
 			}
+
+			fmt.Println("Пользователь успешно авторизован!")
 
 			return nil
 		},
