@@ -265,6 +265,7 @@ type SavePrivateDataRequest struct {
 	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	Type          PrivateDataType        `protobuf:"varint,2,opt,name=type,proto3,enum=shortener.PrivateDataType" json:"type,omitempty"`
 	Nonce         []byte                 `protobuf:"bytes,3,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Login         string                 `protobuf:"bytes,4,opt,name=login,proto3" json:"login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -320,6 +321,13 @@ func (x *SavePrivateDataRequest) GetNonce() []byte {
 	return nil
 }
 
+func (x *SavePrivateDataRequest) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
 type SavePrivateDataResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -369,11 +377,12 @@ const file_api_gophkeeper_proto_rawDesc = "" +
 	"\x05login\x18\x01 \x01(\tR\x05login\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"$\n" +
 	"\x10AuthUserResponse\x12\x10\n" +
-	"\x03jwt\x18\x01 \x01(\tR\x03jwt\"r\n" +
+	"\x03jwt\x18\x01 \x01(\tR\x03jwt\"\x88\x01\n" +
 	"\x16SavePrivateDataRequest\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\x12.\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1a.shortener.PrivateDataTypeR\x04type\x12\x14\n" +
-	"\x05nonce\x18\x03 \x01(\fR\x05nonce\"\x19\n" +
+	"\x05nonce\x18\x03 \x01(\fR\x05nonce\x12\x14\n" +
+	"\x05login\x18\x04 \x01(\tR\x05login\"\x19\n" +
 	"\x17SavePrivateDataResponse*F\n" +
 	"\x0fPrivateDataType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\b\n" +

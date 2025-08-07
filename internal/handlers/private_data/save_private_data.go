@@ -39,6 +39,7 @@ func (c *PrivateDataController) SavePrivateData(ctx *gin.Context) {
 		Type:   FromProto(req.Type),
 		UserID: userID,
 		Nonce:  req.Nonce,
+		Login:  req.Login,
 	})
 	if err != nil {
 		custom_errs.RespondWithError(ctx, err)

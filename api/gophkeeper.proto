@@ -30,6 +30,7 @@ message SavePrivateDataRequest{
   bytes data = 1;
   PrivateDataType type = 2;
   bytes nonce = 3;
+  string login = 4;
 }
 
 message SavePrivateDataResponse{}

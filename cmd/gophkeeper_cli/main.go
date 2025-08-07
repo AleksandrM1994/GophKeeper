@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -46,12 +45,6 @@ func main() {
 	if err != nil {
 		lg.Fatal(err)
 	}
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-
-		}
-	}(db)
 
 	sqliteService := sqlite.NewServiceImpl(&lg, db)
 
@@ -83,11 +76,9 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	// Запуск CLI
-	go func() {
-		if err := rootCmd.Execute(); err != nil {
-			os.Exit(1)
-		}
-	}()
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 
 	// Ожидание сигнала остановки
 	<-sigChan

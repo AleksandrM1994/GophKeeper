@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/goccy/go-json"
 	"github.com/segmentio/kafka-go"
@@ -15,48 +15,67 @@ import (
 
 func (c *Controller) ReadMessage(ctx context.Context, topic string) error {
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   []string{c.kafkaHost},
-		Topic:     topic,
-		Partition: 0,
-		MinBytes:  10e3,
-		MaxBytes:  10e6,
+		Brokers:         []string{c.kafkaHost},
+		Topic:           topic,
+		GroupID:         "gophkeeper-cli-group",
+		Partition:       0,
+		MinBytes:        10e3,
+		MaxBytes:        10e6,
+		ReadLagInterval: time.Second * 5, // Интервал обновления информации о лаге
+		MaxWait:         time.Second * 5,
 	})
 
-	msg, errReadMessage := reader.ReadMessage(ctx)
-	if errReadMessage != nil {
-		return fmt.Errorf("read message: %w", errReadMessage)
-	}
+	defer func() {
+		if err := reader.Close(); err != nil {
+			c.lg.Errorf("failed to close Kafka reader: %v", err)
+		}
+	}()
 
-	c.lg.Infow("Получено сообщение из топика", topic, string(msg.Value))
+	c.lg.Infof("Consumer started for topic: %s", topic)
 
-	var req *api.PrivateDataSaved
-	switch topic {
-	case GophKeeperPrivateDataSavedTopic:
-		errUnmarshal := json.Unmarshal(msg.Value, &req)
-		if errUnmarshal != nil {
-			return fmt.Errorf("unmarshal data: %w", errUnmarshal)
+	for {
+		select {
+		case <-ctx.Done():
+			c.lg.Infof("Consumer context cancelled, exiting for topic: %s", topic)
+			return nil
+		default:
+		}
+
+		msg, err := reader.ReadMessage(ctx)
+		if err != nil {
+			c.lg.Errorf("failed to read message from topic %s: %v", topic, err)
+			continue
+		}
+
+		c.lg.Infow("Получено сообщение из топика", "topic", topic, "message", string(msg.Value))
+
+		var req api.PrivateDataSaved
+		err = json.Unmarshal(msg.Value, &req)
+		if err != nil {
+			c.lg.Errorf("failed to unmarshal message from topic %s: %v", topic, err)
+			continue
 		}
 
 		createdAt := req.CreatedAt.AsTime()
 		updatedAt := req.UpdatedAt.AsTime()
-		errSavePrivateData := c.sqliteService.SavePrivateData(&sqlite.PrivateData{
+
+		err = c.sqliteService.SavePrivateData(ctx, &sqlite.PrivateData{
 			ID:        req.Id,
 			Type:      FromProto(req.Type),
 			Data:      req.Data,
 			CreatedAt: service.DatePtr(createdAt),
 			UpdatedAt: service.DatePtr(updatedAt),
+			UserLogin: req.Login,
 		})
-		if errSavePrivateData != nil {
-			return fmt.Errorf("save private data: %w", errSavePrivateData)
+		if err != nil {
+			c.lg.Errorf("failed to save private data from topic %s: %v", topic, err)
+		}
+
+		// Фиксируем offset
+		if err := reader.CommitMessages(ctx, msg); err != nil {
+			c.lg.Errorf("failed to commit message offset in topic %s: %v", topic, err)
 		}
 	}
-
-	errClose := reader.Close()
-	if errClose != nil {
-		return fmt.Errorf("close reader: %w", errClose)
-	}
-
-	return nil
 }
 
 func FromProto(in api.PrivateDataSaved_PrivateDataType) repository.PrivateDataType {

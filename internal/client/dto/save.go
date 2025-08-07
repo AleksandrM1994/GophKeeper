@@ -7,4 +7,5 @@ type SavePrivateDataRequest struct {
 	Type  repository.PrivateDataType
 	JWT   string
 	Nonce []byte
+	Login string
 }

@@ -83,16 +83,12 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.Servi
 				data = []byte(bankData)
 			}
 
-			fmt.Println(data)
-
-			userData, errGetUserData := sqliteService.GetUserData(login)
+			userData, errGetUserData := sqliteService.GetUserData(ctx, login)
 			if errGetUserData != nil {
 				return fmt.Errorf("get user data: %w", errGetUserData)
 			}
 
-			fmt.Println(login)
-
-			fmt.Println(userData.Key)
+			fmt.Printf("Пользователь найден: %s\n", userData)
 
 			encryptData, nonce, errEncrypt := utils.Encrypt(data, userData.Key)
 			if errEncrypt != nil {
@@ -106,6 +102,7 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.Servi
 				Data:  encryptData,
 				JWT:   userData.JWT,
 				Nonce: nonce,
+				Login: login,
 			})
 			if err != nil {
 				fmt.Println(err)

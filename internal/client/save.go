@@ -20,6 +20,7 @@ func (c *ClientImpl) SavePrivateData(ctx context.Context, req *dto.SavePrivateDa
 		Data:  req.Data,
 		Type:  ToProto(req.Type),
 		Nonce: req.Nonce,
+		Login: req.Login,
 	}
 
 	bytesData, errMarshal := json.Marshal(saveData)
