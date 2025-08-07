@@ -11,7 +11,8 @@ message PrivateDataSaved{
   bytes data = 3;
   google.protobuf.Timestamp created_at = 4;
   google.protobuf.Timestamp updated_at = 5;
-  string login = 6;
+  bytes nonce = 6;
+  string login = 7;
 
   enum PrivateDataType{
     UNKNOWN_TYPE = 0;

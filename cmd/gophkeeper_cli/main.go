@@ -58,6 +58,9 @@ func main() {
 	saveCmd := cobra_cli.NewSaveCmd(gophKeeperClient, sqliteService)
 	rootCmd.AddCommand(saveCmd)
 
+	getCmd := cobra_cli.NewGetCmd(sqliteService)
+	rootCmd.AddCommand(getCmd)
+
 	kafkaController := kafka.NewController(&lg, cfg.GetString("kafka.host"), sqliteService)
 	errInitKafkaTopics := kafkaController.InitKafkaTopics()
 	if errInitKafkaTopics != nil {

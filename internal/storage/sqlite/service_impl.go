@@ -8,6 +8,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type ColumnInfo struct {
+	CID        int
+	Name       string
+	Type       string
+	NotNull    bool
+	DefaultVal interface{}
+	PK         bool
+}
+
 type ServiceImpl struct {
 	lg *zap.SugaredLogger
 	db *gorm.DB
@@ -19,7 +28,7 @@ func NewServiceImpl(lg *zap.SugaredLogger, db *gorm.DB) *ServiceImpl {
 
 func (s *ServiceImpl) GetUserData(ctx context.Context, login string) (*UserData, error) {
 	var ud UserData
-	if err := s.db.WithContext(ctx).Where("login = ?", login).First(&ud).Error; err != nil {
+	if err := s.db.WithContext(ctx).Where("login = ?", login).Take(&ud).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
@@ -39,16 +48,19 @@ func (s *ServiceImpl) SaveUserData(ctx context.Context, ud *UserData) error {
 }
 
 // GetPrivateData возвращает приватные данные по ID
-func (s *ServiceImpl) GetPrivateData(ctx context.Context, login string) (*PrivateData, error) {
-	var pd PrivateData
-	if err := s.db.WithContext(ctx).Where("login = ?", login).Preload("User").First(&pd).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		s.lg.Errorf("failed to get private data with id %s: %v", login, err)
+func (s *ServiceImpl) GetPrivateData(ctx context.Context, login string) ([]*PrivateData, error) {
+	var cols []ColumnInfo
+	s.db.Raw("PRAGMA table_info('private_data')").Scan(&cols)
+	s.lg.Infof("cols = %+v", cols)
+
+	var raw []*PrivateData
+	s.lg.Infof("GetPrivateData: login='%s'", login)
+	if err := s.db.Raw("SELECT * FROM private_data WHERE user_login = ?", login).Scan(&raw).Error; err != nil {
+		s.lg.Errorf("failed to get private data for login %s: %v", login, err)
 		return nil, err
 	}
-	return &pd, nil
+
+	return raw, nil
 }
 
 // SavePrivateData сохраняет или обновляет приватные данные

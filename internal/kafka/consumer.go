@@ -49,7 +49,7 @@ func (c *Controller) ReadMessage(ctx context.Context, topic string) error {
 
 		c.lg.Infow("Получено сообщение из топика", "topic", topic, "message", string(msg.Value))
 
-		var req api.PrivateDataSaved
+		var req *api.PrivateDataSaved
 		err = json.Unmarshal(msg.Value, &req)
 		if err != nil {
 			c.lg.Errorf("failed to unmarshal message from topic %s: %v", topic, err)
@@ -65,6 +65,7 @@ func (c *Controller) ReadMessage(ctx context.Context, topic string) error {
 			Data:      req.Data,
 			CreatedAt: service.DatePtr(createdAt),
 			UpdatedAt: service.DatePtr(updatedAt),
+			Nonce:     req.Nonce,
 			UserLogin: req.Login,
 		})
 		if err != nil {

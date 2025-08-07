@@ -84,7 +84,8 @@ type PrivateDataSaved struct {
 	Data          []byte                           `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 	CreatedAt     *timestamppb.Timestamp           `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp           `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Login         string                           `protobuf:"bytes,6,opt,name=login,proto3" json:"login,omitempty"`
+	Nonce         []byte                           `protobuf:"bytes,6,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	Login         string                           `protobuf:"bytes,7,opt,name=login,proto3" json:"login,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -154,6 +155,13 @@ func (x *PrivateDataSaved) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *PrivateDataSaved) GetNonce() []byte {
+	if x != nil {
+		return x.Nonce
+	}
+	return nil
+}
+
 func (x *PrivateDataSaved) GetLogin() string {
 	if x != nil {
 		return x.Login
@@ -165,7 +173,7 @@ var File_api_kafka_proto protoreflect.FileDescriptor
 
 const file_api_kafka_proto_rawDesc = "" +
 	"\n" +
-	"\x0fapi/kafka.proto\x12\tshortener\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe4\x02\n" +
+	"\x0fapi/kafka.proto\x12\tshortener\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfa\x02\n" +
 	"\x10PrivateDataSaved\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12?\n" +
 	"\x04type\x18\x02 \x01(\x0e2+.shortener.PrivateDataSaved.PrivateDataTypeR\x04type\x12\x12\n" +
@@ -174,7 +182,8 @@ const file_api_kafka_proto_rawDesc = "" +
 	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x14\n" +
-	"\x05login\x18\x06 \x01(\tR\x05login\"_\n" +
+	"\x05nonce\x18\x06 \x01(\fR\x05nonce\x12\x14\n" +
+	"\x05login\x18\a \x01(\tR\x05login\"_\n" +
 	"\x0fPrivateDataType\x12\x10\n" +
 	"\fUNKNOWN_TYPE\x10\x00\x12\r\n" +
 	"\tTEXT_TYPE\x10\x01\x12\r\n" +

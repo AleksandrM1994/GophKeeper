@@ -52,6 +52,7 @@ func (s *PrivateDataServiceImpl) SavePrivateData(ctx context.Context, req *dto.S
 		Data:      req.Data,
 		CreatedAt: timestamppb.New(timeNow),
 		UpdatedAt: timestamppb.New(timeNow),
+		Nonce:     req.Nonce,
 		Login:     req.Login,
 	}
 

@@ -40,5 +40,7 @@ func ConnectSQLite() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to auto migrate PrivateData: %w", errAutoMigrate)
 	}
 
+	db = db.Debug()
+
 	return db, nil
 }

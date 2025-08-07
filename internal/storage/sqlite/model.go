@@ -20,7 +20,8 @@ type PrivateData struct {
 	Data      []byte
 	CreatedAt *time.Time
 	UpdatedAt *time.Time
-	UserLogin string `gorm:"index;not null"`
+	Nonce     []byte
+	UserLogin string `gorm:"column:user_login;index;not null"`
 }
 
 func (PrivateData) TableName() string { return "private_data" }
