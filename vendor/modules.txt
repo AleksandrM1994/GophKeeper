@@ -155,6 +155,9 @@ github.com/lib/pq/scram
 # github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
+# github.com/mattn/go-shellwords v1.0.12
+## explicit; go 1.13
+github.com/mattn/go-shellwords
 # github.com/mattn/go-sqlite3 v1.14.30
 ## explicit; go 1.19
 github.com/mattn/go-sqlite3

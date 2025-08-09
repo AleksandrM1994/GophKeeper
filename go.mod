@@ -10,6 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/securecookie v1.1.2
 	github.com/lib/pq v1.10.9
+	github.com/mattn/go-shellwords v1.0.12
 	github.com/mattn/go-sqlite3 v1.14.30
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/segmentio/kafka-go v0.4.48

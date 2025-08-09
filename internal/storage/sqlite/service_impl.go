@@ -8,15 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type ColumnInfo struct {
-	CID        int
-	Name       string
-	Type       string
-	NotNull    bool
-	DefaultVal interface{}
-	PK         bool
-}
-
 type ServiceImpl struct {
 	lg *zap.SugaredLogger
 	db *gorm.DB
@@ -27,7 +18,7 @@ func NewServiceImpl(lg *zap.SugaredLogger, db *gorm.DB) *ServiceImpl {
 }
 
 func (s *ServiceImpl) GetUserData(ctx context.Context, login string) (*UserData, error) {
-	var ud UserData
+	var ud *UserData
 	if err := s.db.WithContext(ctx).Where("login = ?", login).Take(&ud).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -35,11 +26,17 @@ func (s *ServiceImpl) GetUserData(ctx context.Context, login string) (*UserData,
 		s.lg.Errorf("failed to get user data for login %s: %v", login, err)
 		return nil, err
 	}
-	return &ud, nil
+	return ud, nil
 }
 
 // SaveUserData сохраняет или обновляет данные пользователя
 func (s *ServiceImpl) SaveUserData(ctx context.Context, ud *UserData) error {
+	var allUserData []*UserData
+	err := s.db.Model(&UserData{}).Find(&allUserData).Error
+	if err != nil {
+		return err
+	}
+	s.lg.Infof("all user data: %v", allUserData)
 	if err := s.db.WithContext(ctx).Save(ud).Error; err != nil {
 		s.lg.Errorf("failed to save user data for login %s: %v", ud.Login, err)
 		return err
@@ -49,13 +46,15 @@ func (s *ServiceImpl) SaveUserData(ctx context.Context, ud *UserData) error {
 
 // GetPrivateData возвращает приватные данные по ID
 func (s *ServiceImpl) GetPrivateData(ctx context.Context, login string) ([]*PrivateData, error) {
-	var cols []ColumnInfo
-	s.db.Raw("PRAGMA table_info('private_data')").Scan(&cols)
-	s.lg.Infof("cols = %+v", cols)
-
+	var allPrivateData []*PrivateData
+	err := s.db.Model(&PrivateData{}).Find(&allPrivateData).Error
+	if err != nil {
+		return nil, err
+	}
+	s.lg.Infof("all private data: %v", allPrivateData)
 	var raw []*PrivateData
-	s.lg.Infof("GetPrivateData: login='%s'", login)
-	if err := s.db.Raw("SELECT * FROM private_data WHERE user_login = ?", login).Scan(&raw).Error; err != nil {
+	err = s.db.Model(&PrivateData{}).Where("user_login = ?", login).Find(&raw).Error
+	if err != nil {
 		s.lg.Errorf("failed to get private data for login %s: %v", login, err)
 		return nil, err
 	}
@@ -74,7 +73,7 @@ func (s *ServiceImpl) SavePrivateData(ctx context.Context, pd *PrivateData) erro
 		*pd.UpdatedAt = time.Now()
 	}
 
-	if err := s.db.WithContext(ctx).Save(pd).Error; err != nil {
+	if err := s.db.WithContext(ctx).Save(&pd).Error; err != nil {
 		s.lg.Errorf("failed to save private data with id %s: %v", pd.ID, err)
 		return err
 	}

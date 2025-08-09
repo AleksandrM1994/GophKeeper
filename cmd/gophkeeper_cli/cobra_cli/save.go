@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 
 	"github.com/GophKeeper/internal/client"
 	"github.com/GophKeeper/internal/client/dto"
@@ -30,7 +31,7 @@ var (
 	bankCardCVC          string
 )
 
-func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
+func NewSaveCmd(lg *zap.SugaredLogger, gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
 	saveCmd := &cobra.Command{
 		Use:   "save",
 		Short: "Сохранить данные (текст, файл, аутентификацию или банковские данные)",
@@ -55,7 +56,7 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.Servi
 			}
 
 			if login == "" {
-				return errors.New("обязательно указать --user")
+				return errors.New("обязательно указать --login")
 			}
 
 			var data []byte
@@ -88,14 +89,14 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.Servi
 				return fmt.Errorf("get user data: %w", errGetUserData)
 			}
 
-			fmt.Printf("Пользователь найден: %s\n", userData)
+			if userData == nil {
+				return fmt.Errorf("пользователь с логином %s не найден", login)
+			}
 
 			encryptData, nonce, errEncrypt := utils.Encrypt(data, userData.Key)
 			if errEncrypt != nil {
 				return fmt.Errorf("encrypt data: %w", errEncrypt)
 			}
-
-			fmt.Println(nonce)
 
 			err := gophKeeperClient.SavePrivateData(ctx, &dto.SavePrivateDataRequest{
 				Type:  dataType,
@@ -105,7 +106,6 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.Servi
 				Login: login,
 			})
 			if err != nil {
-				fmt.Println(err)
 				return fmt.Errorf("save private data: %w", err)
 			}
 
@@ -127,8 +127,8 @@ func NewSaveCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.Servi
 
 	saveCmd.Flags().BoolVarP(&bankMode, "bank", "b", false, "Save bank data")
 	saveCmd.Flags().StringVarP(&bankCardNumber, "bank-number", "", "", "Bank card number")
-	saveCmd.Flags().StringVarP(&bankCardPersonName, "bank-name", "", "", "Bank card number")
-	saveCmd.Flags().StringVarP(&bankCardActiveDateTo, "bank-date", "", "", "Bank card number")
+	saveCmd.Flags().StringVarP(&bankCardPersonName, "bank-name", "", "", "Bank card person name")
+	saveCmd.Flags().StringVarP(&bankCardActiveDateTo, "bank-date", "", "", "Bank card active date")
 	saveCmd.Flags().StringVarP(&bankCardCVC, "bank-cvc", "", "", "Bank CVC code")
 
 	saveCmd.Flags().StringVarP(&login, "login", "l", "", "Обязательный логин для данных")

@@ -31,8 +31,6 @@ func (c *Controller) ReadMessage(ctx context.Context, topic string) error {
 		}
 	}()
 
-	c.lg.Infof("Consumer started for topic: %s", topic)
-
 	for {
 		select {
 		case <-ctx.Done():

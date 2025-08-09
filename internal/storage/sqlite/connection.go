@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"gorm.io/driver/sqlite"
@@ -10,7 +9,7 @@ import (
 )
 
 const (
-	dbPath = "internal/storage/sqlite/db/cli_data.db"
+	dbPath = "internal/storage/sqlite/db/sqlite.db"
 )
 
 func ConnectSQLite() (*gorm.DB, error) {
@@ -20,13 +19,9 @@ func ConnectSQLite() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to get absolute path for DB: %w", err)
 	}
 
-	// Со здаем папку, если её нет
-	dbDir := filepath.Dir(absDBPath)
-	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create DB directory: %w", err)
-	}
+	fmt.Printf("Using SQLite DB at: %s", absDBPath)
 
-	dsn := absDBPath + "?_journal=WAL&_foreign_keys=on&_busy_timeout=5000"
+	dsn := absDBPath
 	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to open SQLite DB: %w", err)

@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 
 	"github.com/GophKeeper/internal/storage/sqlite"
 	"github.com/GophKeeper/internal/utils"
 )
 
 // NewGetCmd создает команду для получения сохраненных данных по логину
-func NewGetCmd(sqliteService *sqlite.ServiceImpl) *cobra.Command {
+func NewGetCmd(lg *zap.SugaredLogger, sqliteService *sqlite.ServiceImpl) *cobra.Command {
 	getCmd := &cobra.Command{
 		Use:   "get",
 		Short: "Получить сохраненные данные пользователя по его логину",
@@ -22,7 +23,7 @@ func NewGetCmd(sqliteService *sqlite.ServiceImpl) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			// спрашиваем логин
+			// Шаг 1: спрашиваем логин
 			reader := bufio.NewReader(os.Stdin)
 			fmt.Print("Введите логин: ")
 			login, err := reader.ReadString('\n')
@@ -31,7 +32,7 @@ func NewGetCmd(sqliteService *sqlite.ServiceImpl) *cobra.Command {
 			}
 			login = strings.TrimSpace(login)
 
-			// Получаем данные пользователя
+			// Шаг 2: Получаем данные пользователя
 			userData, errGetUserData := sqliteService.GetUserData(ctx, login)
 			if errGetUserData != nil {
 				return fmt.Errorf("ошибка при получении информации о пользователе: %v", errGetUserData)
@@ -44,19 +45,25 @@ func NewGetCmd(sqliteService *sqlite.ServiceImpl) *cobra.Command {
 
 			fmt.Printf("логин: %s\n", login)
 
-			// Получаем все приватные данные этого пользователя
+			// Шаг 3: Получаем все приватные данные этого пользователя
 			privateDataList, err := sqliteService.GetPrivateData(ctx, login)
 			if err != nil {
 				return fmt.Errorf("ошибка при получении приватных данных: %v", err)
 			}
 
-			// Выводим результаты
+			// Шаг 4: Выводим результаты
+			if len(privateDataList) == 0 {
+				fmt.Println("У пользователя нет сохранённых данных.")
+				return nil
+			}
+
 			fmt.Printf("Найдено %d записей для пользователя %s:\n", len(privateDataList), login)
 			for i, pd := range privateDataList {
 				decryptData, errDecrypt := utils.Decrypt(pd.Data, pd.Nonce, userData.Key)
 				if errDecrypt != nil {
-					fmt.Println("Ошибка при расшифровке данных:", errDecrypt)
-					return nil
+					lg.Errorf("Ошибка при расшифровке данных: %v", errDecrypt)
+					fmt.Printf("%d. ID: %s | Тип: %s | Ошибка: %v\n", i+1, pd.ID, pd.Type, errDecrypt)
+					continue
 				}
 				fmt.Printf("%d. ID: %s | Тип: %s | Данные: %s\n", i+1, pd.ID, pd.Type, string(decryptData))
 			}

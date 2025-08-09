@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"syscall"
 
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 	"golang.org/x/term"
 
 	"github.com/GophKeeper/internal/client"
@@ -17,35 +19,47 @@ import (
 )
 
 // authCmd represents the auth command
-func NewAuthCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
+func NewAuthCmd(lg *zap.SugaredLogger, gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
 	authCmd := &cobra.Command{
 		Use:   "auth",
-		Short: "авторизация пользователя в системе",
-		Long: `авторизация пользователя в системе обязательна для выполнения команд, 
-которые предоставляют доступ к возможностям системы
-нужно ввести логин и пароль, программа запрашивает их у пользователя поочереди`,
+		Short: "Авторизация пользователя в системе",
+		Long: `Авторизация пользователя в системе обязательна для выполнения команд, 
+которые предоставляют доступ к возможностям системы.
+Нужно ввести логин и пароль, программа запрашивает их у пользователя поочереди.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			// Шаг 1: спрашиваем логин
 			reader := bufio.NewReader(os.Stdin)
+
+			// Логин
 			fmt.Print("Введите логин: ")
 			login, err := reader.ReadString('\n')
 			if err != nil {
-				return fmt.Errorf("ошибка при вводе логина: %v", err)
+				return fmt.Errorf("ошибка при вводе логина: %w", err)
 			}
 			login = strings.TrimSpace(login)
 
-			// Шаг 2: спрашиваем пароль (в невидимом режиме)
-			fmt.Print("Введите пароль: ")
-			bytePassword, err := term.ReadPassword(int(os.Stdin.Fd()))
-			if err != nil {
-				return fmt.Errorf("ошибка при вводе пароля: %v", err)
+			// Пароль
+			var password string
+			if term.IsTerminal(syscall.Stdin) {
+				fmt.Print("Введите пароль: ")
+				bytePwd, err := term.ReadPassword(syscall.Stdin)
+				fmt.Println()
+				if err != nil {
+					return fmt.Errorf("ошибка при вводе пароля: %w", err)
+				}
+				password = string(bytePwd)
+			} else {
+				// НЕ-TTY: читаем как обычную строку
+				fmt.Print("Введите пароль (будет видно на экране): ")
+				pwdLine, err := reader.ReadString('\n')
+				if err != nil {
+					return fmt.Errorf("ошибка при вводе пароля: %w", err)
+				}
+				password = strings.TrimSpace(pwdLine)
 			}
-			fmt.Println() // перевод строки после ввода пароля
-			password := string(bytePassword)
 
-			fmt.Printf("Вы ввели:\n  логин: %s\n  пароль: %s\n", login, password)
+			lg.Infof("Пользователь ввел: логин=%s", login)
 
 			// Шаг 3: авторизация пользователя
 			res, errAuthUser := gophKeeperClient.AuthUser(ctx, &api.AuthUserRequest{
@@ -74,10 +88,9 @@ func NewAuthCmd(gophKeeperClient *client.ClientImpl, sqliteService *sqlite.Servi
 					Key:   key,
 				}
 			}
+
 			// Шаг 5: установка JWT
 			userData.JWT = res.Jwt
-
-			fmt.Printf("данные для сохранения в БД: %w", userData)
 
 			// Шаг 6: сохранение данных пользователя
 			errSaveUser := sqliteService.SaveUserData(ctx, userData)
