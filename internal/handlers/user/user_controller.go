@@ -12,10 +12,10 @@ import (
 type UserController struct {
 	cfg     config.Config
 	lg      *zap.SugaredLogger
-	service *user.UserServiceImpl
+	service user.UserService
 }
 
-func NewController(cfg config.Config, logger *zap.SugaredLogger, service *user.UserServiceImpl) *UserController {
+func NewController(cfg config.Config, logger *zap.SugaredLogger, service user.UserService) *UserController {
 	return &UserController{
 		cfg:     cfg,
 		lg:      logger,

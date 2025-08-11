@@ -1,4 +1,4 @@
-package cobra_cli
+package cli_operation
 
 import (
 	"bufio"
@@ -14,7 +14,7 @@ import (
 )
 
 // NewGetCmd создает команду для получения сохраненных данных по логину
-func NewGetCmd(lg *zap.SugaredLogger, sqliteService *sqlite.ServiceImpl) *cobra.Command {
+func NewGetCmd(lg *zap.SugaredLogger, sqliteService sqlite.SqliteService) *cobra.Command {
 	getCmd := &cobra.Command{
 		Use:   "get",
 		Short: "Получить сохраненные данные пользователя по его логину",

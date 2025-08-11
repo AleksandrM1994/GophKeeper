@@ -7,7 +7,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func SendMessage(ctx context.Context, kafkaHost string, topic string, message []byte) error {
+func (c *KafkaServiceImpl) SendMessage(ctx context.Context, kafkaHost string, topic string, message []byte) error {
 	w := &kafka.Writer{
 		Addr:     kafka.TCP(kafkaHost),
 		Topic:    topic,

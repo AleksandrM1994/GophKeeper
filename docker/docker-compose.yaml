@@ -12,6 +12,17 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  postgres_test:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
   zookeeper:
     image: wurstmeister/zookeeper:3.4.6
     ports:
@@ -28,3 +39,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 volumes:
   postgres_data:
+  postgres_test_data:

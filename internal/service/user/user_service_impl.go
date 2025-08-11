@@ -13,7 +13,6 @@ type UserServiceImpl struct {
 	userRepo repository.UserRepository
 }
 
-func NewService(lg *zap.SugaredLogger, cfg config.Config, userRepo repository.UserRepository) *UserServiceImpl {
-	srv := &UserServiceImpl{lg: lg, cfg: cfg, userRepo: userRepo}
-	return srv
+func NewService(lg *zap.SugaredLogger, cfg config.Config, userRepo repository.UserRepository) UserService {
+	return &UserServiceImpl{lg: lg, cfg: cfg, userRepo: userRepo}
 }

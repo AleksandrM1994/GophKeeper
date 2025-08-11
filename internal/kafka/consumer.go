@@ -13,7 +13,7 @@ import (
 	api "github.com/GophKeeper/pkg/api"
 )
 
-func (c *Controller) ReadMessage(ctx context.Context, topic string) error {
+func (c *KafkaServiceImpl) ReadMessage(ctx context.Context, topic string) error {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:         []string{c.kafkaHost},
 		Topic:           topic,

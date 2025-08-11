@@ -1,4 +1,4 @@
-package cobra_cli
+package cli_operation
 
 import (
 	"github.com/spf13/cobra"

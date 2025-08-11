@@ -36,14 +36,13 @@ func main() {
 
 	sqliteService := sqlite.NewServiceImpl(&lg, db)
 
-	kafkaController := kafka.NewController(&lg, cfg.KafkaHost, sqliteService)
-	errInitKafkaTopics := kafkaController.InitKafkaTopics()
+	kafkaService := kafka.NewKafkaService(&lg, cfg.KafkaHost, sqliteService)
+	errInitKafkaTopics := kafka.InitKafkaTopics(cfg.KafkaHost)
 	if errInitKafkaTopics != nil {
 		lg.Fatalf("kafkaController.InitKafkaTopics, %w", errInitKafkaTopics)
 	}
 
-	lg.Info("запуск Kafka-потребителя для топика gophkeeper.privateDataSaved")
-	if err := kafkaController.ReadMessage(context.Background(), kafka.GophKeeperPrivateDataSavedTopic); err != nil {
+	if err := kafkaService.ReadMessage(context.Background(), kafka.GophKeeperPrivateDataSavedTopic); err != nil {
 		lg.Fatalf("ошибка при чтении сообщений из Kafka: %w", err)
 	}
 }

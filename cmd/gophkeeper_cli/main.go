@@ -5,17 +5,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/mattn/go-shellwords"
 
-	"github.com/GophKeeper/cmd/gophkeeper_cli/cobra_cli"
 	"github.com/GophKeeper/config"
+	"github.com/GophKeeper/internal/cli_operation"
 	"github.com/GophKeeper/internal/client"
 	"github.com/GophKeeper/internal/storage/sqlite"
 
@@ -50,17 +52,20 @@ func main() {
 
 	sqliteService := sqlite.NewServiceImpl(&lg, db)
 
-	gophKeeperClient := client.NewClient(&lg, cfg)
+	httpClient := &http.Client{
+		Timeout: time.Second * 30,
+	}
+	gophKeeperClient := client.NewClient(&lg, cfg, httpClient)
 
-	rootCmd := cobra_cli.NewRootCmd()
+	rootCmd := cli_operation.NewRootCmd()
 
-	authCmd := cobra_cli.NewAuthCmd(&lg, gophKeeperClient, sqliteService)
+	authCmd := cli_operation.NewAuthCmd(&lg, gophKeeperClient, sqliteService)
 	rootCmd.AddCommand(authCmd)
 
-	saveCmd := cobra_cli.NewSaveCmd(&lg, gophKeeperClient, sqliteService)
+	saveCmd := cli_operation.NewSaveCmd(&lg, gophKeeperClient, sqliteService)
 	rootCmd.AddCommand(saveCmd)
 
-	getCmd := cobra_cli.NewGetCmd(&lg, sqliteService)
+	getCmd := cli_operation.NewGetCmd(&lg, sqliteService)
 	rootCmd.AddCommand(getCmd)
 
 	sigChan := make(chan os.Signal, 1)

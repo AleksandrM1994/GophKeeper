@@ -14,15 +14,15 @@ import (
 type PrivateDataController struct {
 	cfg                config.Config
 	lg                 *zap.SugaredLogger
-	userService        *user.UserServiceImpl
-	privateDataService *private_data.PrivateDataServiceImpl
+	userService        user.UserService
+	privateDataService private_data.PrivateDataService
 }
 
 func NewController(
 	cfg config.Config,
 	logger *zap.SugaredLogger,
-	userService *user.UserServiceImpl,
-	privateDataService *private_data.PrivateDataServiceImpl,
+	userService user.UserService,
+	privateDataService private_data.PrivateDataService,
 ) *PrivateDataController {
 	return &PrivateDataController{
 		cfg:                cfg,

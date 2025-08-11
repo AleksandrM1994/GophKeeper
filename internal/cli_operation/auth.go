@@ -1,4 +1,4 @@
-package cobra_cli
+package cli_operation
 
 import (
 	"bufio"
@@ -19,7 +19,7 @@ import (
 )
 
 // authCmd represents the auth command
-func NewAuthCmd(lg *zap.SugaredLogger, gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
+func NewAuthCmd(lg *zap.SugaredLogger, gophKeeperClient client.Client, sqliteService sqlite.SqliteService) *cobra.Command {
 	authCmd := &cobra.Command{
 		Use:   "auth",
 		Short: "Авторизация пользователя в системе",

@@ -14,7 +14,7 @@ import (
 	"github.com/GophKeeper/internal/service/user/dto"
 )
 
-func Authorizer(lg *zap.SugaredLogger, cfg config.Config, srv *user.UserServiceImpl) gin.HandlerFunc {
+func Authorizer(lg *zap.SugaredLogger, cfg config.Config, srv user.UserService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		lg.Info("START CHECK AUTHORIZATION")
 
@@ -24,25 +24,30 @@ func Authorizer(lg *zap.SugaredLogger, cfg config.Config, srv *user.UserServiceI
 				Code:  http.StatusUnauthorized,
 				Error: errors.New("authorization header is required").Error(),
 			})
+			ctx.Abort()
+			return
 		}
 
-		authToken, ok := strings.CutPrefix(authHeader, "Bearer ")
+		token, ok := strings.CutPrefix(authHeader, "Bearer ")
 		if !ok {
 			ctx.JSON(http.StatusUnauthorized, custom_errs.ErrorResponse{
 				Code:  http.StatusUnauthorized,
 				Error: errors.New("authorization header is invalid").Error(),
 			})
+			ctx.Abort()
+			return
 		}
 
-		res, err := srv.CheckAuthUser(ctx, &dto.CheckAuthRequest{
-			JWT: authToken,
-		})
+		res, err := srv.CheckAuthUser(ctx, &dto.CheckAuthRequest{JWT: token})
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, custom_errs.ErrorResponse{
 				Code:  http.StatusUnauthorized,
 				Error: err.Error(),
 			})
+			ctx.Abort()
+			return
 		}
+
 		ctx.Set("user_id", res.UserID)
 	}
 }

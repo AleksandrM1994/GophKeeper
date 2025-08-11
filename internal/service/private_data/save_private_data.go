@@ -61,7 +61,7 @@ func (s *PrivateDataServiceImpl) SavePrivateData(ctx context.Context, req *dto.S
 		return fmt.Errorf("marshal data error: %v", errMarshal)
 	}
 
-	errSendMessage := kafka.SendMessage(
+	errSendMessage := s.kafkaService.SendMessage(
 		ctx,
 		s.cfg.KafkaHost,
 		kafka.GophKeeperPrivateDataSavedTopic,

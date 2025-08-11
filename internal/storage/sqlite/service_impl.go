@@ -13,7 +13,7 @@ type ServiceImpl struct {
 	db *gorm.DB
 }
 
-func NewServiceImpl(lg *zap.SugaredLogger, db *gorm.DB) *ServiceImpl {
+func NewServiceImpl(lg *zap.SugaredLogger, db *gorm.DB) SqliteService {
 	return &ServiceImpl{lg: lg, db: db}
 }
 
@@ -53,7 +53,7 @@ func (s *ServiceImpl) GetPrivateData(ctx context.Context, login string) ([]*Priv
 	}
 	s.lg.Infof("all private data: %v", allPrivateData)
 	var raw []*PrivateData
-	err = s.db.Model(&PrivateData{}).Where("user_login = ?", login).Find(&raw).Error
+	err = s.db.WithContext(ctx).Model(&PrivateData{}).Where("user_login = ?", login).Find(&raw).Error
 	if err != nil {
 		s.lg.Errorf("failed to get private data for login %s: %v", login, err)
 		return nil, err

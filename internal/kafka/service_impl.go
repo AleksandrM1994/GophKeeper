@@ -11,22 +11,22 @@ import (
 	"github.com/GophKeeper/internal/storage/sqlite"
 )
 
-type Controller struct {
+type KafkaServiceImpl struct {
 	lg            *zap.SugaredLogger
 	kafkaHost     string
-	sqliteService *sqlite.ServiceImpl
+	sqliteService sqlite.SqliteService
 }
 
-func NewController(lg *zap.SugaredLogger, kafkaHost string, sqliteService *sqlite.ServiceImpl) *Controller {
-	return &Controller{
+func NewKafkaService(lg *zap.SugaredLogger, kafkaHost string, sqliteService sqlite.SqliteService) KafkaService {
+	return &KafkaServiceImpl{
 		lg:            lg,
 		kafkaHost:     kafkaHost,
 		sqliteService: sqliteService,
 	}
 }
 
-func (c *Controller) InitKafkaTopics() error {
-	conn, err := kafka.Dial("tcp", c.kafkaHost)
+func InitKafkaTopics(kafkaHost string) error {
+	conn, err := kafka.Dial("tcp", kafkaHost)
 	if err != nil {
 		return fmt.Errorf("dial kafka: %w", err)
 	}

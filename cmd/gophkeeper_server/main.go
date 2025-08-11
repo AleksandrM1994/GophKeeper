@@ -46,8 +46,14 @@ func main() {
 	userRepo := repository.NewUserRepository(repo)
 	privateDataRepo := repository.NewPrivateDataRepository(repo)
 
+	kafkaService := kafka.NewKafkaService(&lg, cfg.KafkaHost, nil)
+	errInitKafkaTopics := kafka.InitKafkaTopics(cfg.KafkaHost)
+	if errInitKafkaTopics != nil {
+		lg.Fatalf("kafkaController.InitKafkaTopics, %w", errInitKafkaTopics)
+	}
+
 	userServiceImpl := userService.NewService(&lg, cfg, userRepo)
-	privateDataServiceImpl := privateDataService.NewService(&lg, cfg, privateDataRepo)
+	privateDataServiceImpl := privateDataService.NewService(&lg, cfg, privateDataRepo, kafkaService)
 
 	userController := userHandlers.NewController(cfg, &lg, userServiceImpl)
 	userController.RegisterRoutes(g)
@@ -59,12 +65,6 @@ func main() {
 		Handler:      g,
 		ReadTimeout:  time.Minute,
 		WriteTimeout: time.Minute,
-	}
-
-	kafkaController := kafka.NewController(&lg, cfg.KafkaHost, nil)
-	errInitKafkaTopics := kafkaController.InitKafkaTopics()
-	if errInitKafkaTopics != nil {
-		lg.Fatalf("kafkaController.InitKafkaTopics, %w", errInitKafkaTopics)
 	}
 
 	err = server.ListenAndServe()

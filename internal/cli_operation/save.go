@@ -1,4 +1,4 @@
-package cobra_cli
+package cli_operation
 
 import (
 	"errors"
@@ -31,7 +31,7 @@ var (
 	bankCardCVC          string
 )
 
-func NewSaveCmd(lg *zap.SugaredLogger, gophKeeperClient *client.ClientImpl, sqliteService *sqlite.ServiceImpl) *cobra.Command {
+func NewSaveCmd(lg *zap.SugaredLogger, gophKeeperClient client.Client, sqliteService sqlite.SqliteService) *cobra.Command {
 	saveCmd := &cobra.Command{
 		Use:   "save",
 		Short: "Сохранить данные (текст, файл, аутентификацию или банковские данные)",

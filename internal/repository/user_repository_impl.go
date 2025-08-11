@@ -21,7 +21,7 @@ func NewUserRepository(repo *Repository) UserRepository {
 }
 
 func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) error {
-	err := r.db.Create(user).Error
+	err := r.db.WithContext(ctx).Create(user).Error
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" {

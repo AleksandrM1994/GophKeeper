@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/GophKeeper/config"
+	"github.com/GophKeeper/internal/kafka"
 	"github.com/GophKeeper/internal/repository"
 )
 
@@ -13,9 +14,13 @@ type PrivateDataServiceImpl struct {
 	cfg             config.Config
 	privateDataRepo repository.PrivateDataRepository
 	cookie          *securecookie.SecureCookie
+	kafkaService    kafka.KafkaService
 }
 
-func NewService(lg *zap.SugaredLogger, cfg config.Config, privateDataRepo repository.PrivateDataRepository) *PrivateDataServiceImpl {
-	srv := &PrivateDataServiceImpl{lg: lg, cfg: cfg, privateDataRepo: privateDataRepo}
-	return srv
+func NewService(
+	lg *zap.SugaredLogger,
+	cfg config.Config,
+	privateDataRepo repository.PrivateDataRepository,
+	kafkaService kafka.KafkaService) PrivateDataService {
+	return &PrivateDataServiceImpl{lg: lg, cfg: cfg, privateDataRepo: privateDataRepo, kafkaService: kafkaService}
 }

@@ -26,6 +26,11 @@ type ErrorResponse struct {
 
 func RespondWithError(ctx *gin.Context, err error) {
 	switch {
+	case errors.Is(err, ErrBadRequest):
+		ctx.JSON(http.StatusBadRequest, ErrorResponse{
+			Code:  http.StatusBadRequest,
+			Error: err.Error(),
+		})
 	case errors.Is(err, ErrValidate):
 		ctx.JSON(http.StatusBadRequest, ErrorResponse{
 			Code:  http.StatusBadRequest,
