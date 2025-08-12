@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option go_package = "internal/grpc";
+
+package shortener;
+
+service GophKeeper {
+  rpc RegisterUser (RegisterUserRequest) returns (RegisterUserResponse);
+  rpc AuthUser (AuthUserRequest) returns (AuthUserResponse);
+  rpc SavePrivateData (SavePrivateDataRequest) returns (SavePrivateDataResponse);
+}
+
+message RegisterUserRequest{
+  string login = 1;
+  string password = 2;
+}
+
+message RegisterUserResponse{}
+
+message AuthUserRequest{
+  string login = 1;
+  string password = 2;
+}
+
+message AuthUserResponse{
+  string jwt = 1;
+}
+
+message SavePrivateDataRequest{
+  bytes data = 1;
+  PrivateDataType type = 2;
+  bytes nonce = 3;
+  string login = 4;
+}
+
+message SavePrivateDataResponse{}
+
+
+enum PrivateDataType{
+  UNKNOWN = 0;
+  TEXT = 1;
+  FILE = 2;
+  AUTH = 3;
+  BANK = 4;
+}
